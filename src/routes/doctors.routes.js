@@ -122,18 +122,6 @@ router.post("/", upload.single("image"), async (req, res) => {
   }
 });
 
-router.get("/", async (req, res) => {
-  try {
-    const [rows] = await pool.query(
-      `SELECT *
-       FROM doctors ORDER BY id DESC`
-    );
-    res.json(rows);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Failed to fetch doctors" });
-  }
-});
 
 router.use((error, req, res, next) => {
   res.status(400).json({ message: error.message || "Upload error" });
