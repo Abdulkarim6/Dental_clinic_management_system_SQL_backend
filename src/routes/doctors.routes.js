@@ -2,6 +2,7 @@ const express = require("express");
 const multer = require("multer");
 const pool = require("../config/db");
 const cloudinary = require("../config/cloudinary");
+const bcrypt = require("bcryptjs");
 
 const router = express.Router();
 
@@ -38,7 +39,7 @@ async function deleteFromCloudinary(publicId) {
   await cloudinary.uploader.destroy(publicId, { resource_type: "image" });
 }
 
-function parseDoctorBody(body) {
+async function parseDoctorBody(body) {
   const {
     name,
     specialization,
@@ -46,7 +47,11 @@ function parseDoctorBody(body) {
     description,
     phone,
     email,
+    password,
   } = body;
+
+  const saltRounds = 10;
+  const hashedPassword = await bcrypt.hash(password, saltRounds);
 
   return {
     name,
@@ -56,6 +61,7 @@ function parseDoctorBody(body) {
     description: description || null,
     phone: phone || null,
     email: email || null,
+    password: hashedPassword,
   };
 }
 
@@ -64,8 +70,7 @@ router.post("/", upload.single("image"), async (req, res) => {
   let image = null;
 
   try {
-    const doctor = parseDoctorBody(req.body);
-
+    const doctor = await parseDoctorBody(req.body);
     if (!doctor.name || !doctor.specialization) {
       return res.status(400).json({
         message: "Name and specialization are required",
@@ -84,8 +89,8 @@ router.post("/", upload.single("image"), async (req, res) => {
 
     const [result] = await pool.query(
       `INSERT INTO doctors
-   (name, specialization, experience, rating, image_url, image_public_id, description, phone, email)
-   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+   (name, specialization, experience, rating, image_url, image_public_id, description, phone, email, password)
+   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         doctor.name,
         doctor.specialization,
@@ -96,6 +101,7 @@ router.post("/", upload.single("image"), async (req, res) => {
         doctor.description,
         doctor.phone,
         doctor.email,
+        doctor.password,
       ]
     );
 
@@ -121,6 +127,7 @@ router.post("/", upload.single("image"), async (req, res) => {
     });
   }
 });
+
 
 
 router.use((error, req, res, next) => {
