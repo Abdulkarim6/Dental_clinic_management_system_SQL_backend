@@ -128,6 +128,15 @@ router.post("/", upload.single("image"), async (req, res) => {
   }
 });
 
+/* Get all doctors */
+router.get("/", async (req, res) => {
+  try {
+    const [rows] = await db.query("SELECT * FROM doctors");
+    res.status(200).json(rows);
+  } catch (error) {
+    res.status(500).json({ message: error.message || "Failed to fetch doctors" });
+  }
+});
 
 
 router.use((error, req, res, next) => {
