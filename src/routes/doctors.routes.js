@@ -39,28 +39,15 @@ async function deleteFromCloudinary(publicId) {
   await cloudinary.uploader.destroy(publicId, { resource_type: "image" });
 }
 
+//convert to hashing password
 async function parseDoctorBody(body) {
-  const {
-    name,
-    specialization,
-    experience = 0,
-    description,
-    phone,
-    email,
-    password,
-  } = body;
+  const { password } = body;
 
   const saltRounds = 10;
   const hashedPassword = await bcrypt.hash(password, saltRounds);
 
   return {
-    name,
-    specialization,
-    experience: Number(experience) || 0,
-    rating: null,
-    description: description || null,
-    phone: phone || null,
-    email: email || null,
+    ...body,
     password: hashedPassword,
   };
 }
@@ -71,17 +58,6 @@ router.post("/", upload.single("image"), async (req, res) => {
 
   try {
     const doctor = await parseDoctorBody(req.body);
-    if (!doctor.name || !doctor.specialization) {
-      return res.status(400).json({
-        message: "Name and specialization are required",
-      });
-    }
-
-    if (doctor.rating !== null && (doctor.rating < 0 || doctor.rating > 5)) {
-      return res
-        .status(400)
-        .json({ message: "Rating must be between 0 and 5" });
-    }
 
     if (req.file) {
       image = await uploadToCloudinary(req.file);
@@ -105,26 +81,37 @@ router.post("/", upload.single("image"), async (req, res) => {
       ]
     );
 
-    const [rows] = await pool.query("SELECT * FROM doctors WHERE id=?", [
-      result.insertId,
-    ]);
+    //checks insert status
+    if (!result || !result.insertId) {
+      return res.status(400).json({
+        success: false,
+        message: "Failed to create doctor",
+      });
+    }
 
     res.status(201).json({
       message: "Doctor created successfully",
-      doctor: rows[0],
     });
   } catch (error) {
     if (image?.public_id) {
       await deleteFromCloudinary(image.public_id).catch(() => {});
     }
 
-    console.error(error);
-    res.status(error.code === "ER_DUP_ENTRY" ? 409 : 500).json({
-      message:
-        error.code === "ER_DUP_ENTRY"
-          ? "Email already exists"
-          : error.message || "Failed to create doctor",
-    });
+    if (error.code === "ER_DUP_ENTRY") {
+      const errorMsg = error.message.toLowerCase();
+
+      if (errorMsg.includes("email")) {
+        return res.status(400).json({
+          success: false,
+          message: "Email already Exists!",
+        });
+      }
+    } else {
+      return res.status(500).json({
+        success: false,
+        message: error.message || "Failed to create doctor",
+      });
+    }
   }
 });
 
@@ -157,7 +144,9 @@ router.delete("/:id", async (req, res) => {
 });
 
 
+//Global Error handler
 router.use((error, req, res, next) => {
+  console.log(error);
   res.status(400).json({ message: error.message || "Upload error" });
 });
 

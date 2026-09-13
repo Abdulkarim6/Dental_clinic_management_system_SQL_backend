@@ -5,14 +5,13 @@ const bcrypt = require("bcryptjs");
 const router = express.Router();
 
 async function parsePatientBody(body) {
-  const { name, email, password, role } = body;
+  const { password, role } = body;
 
   const saltRounds = 10;
   const hashedPassword = await bcrypt.hash(password, saltRounds);
 
   return {
-    name,
-    email,
+    ...body,
     password: hashedPassword,
     role: role || "patient",
   };
@@ -28,26 +27,37 @@ router.post("/register", async (req, res) => {
       [patient.name, patient.email, patient.password, patient.role]
     );
 
-    const [rows] = await pool.query(
-      "SELECT id, name, email, role FROM patients WHERE id=?",
-      [result.insertId]
-    );
+    // const [rows] = await pool.query(
+    //   "SELECT id, name, email, role FROM patients WHERE id=?",
+    //   [result.insertId]
+    // );
 
     res.status(201).json({
       message: "Patient created successfully",
-      patient: rows[0],
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      message: error.message || "Failed to create patient account",
-    });
+    console.error(error.Error);
+    if (error.code === "ER_DUP_ENTRY") {
+      const errorMsg = error.message.toLowerCase();
+
+      if (errorMsg.includes("email")) {
+        return res.status(400).json({
+          success: false,
+          message: "Email already Exists!",
+        });
+      }
+    } else {
+      res.status(500).json({
+        message: error.message || "Failed to create patient account",
+      });
+    }
   }
 });
 
-
 router.use((error, req, res, next) => {
-  res.status(400).json({ message: error.message || "Upload error" });
+  res
+    .status(400)
+    .json({ message: error.message || "Something went wrong, Try again" });
 });
 
 module.exports = router;
