@@ -54,6 +54,48 @@ router.post("/register", async (req, res) => {
   }
 });
 
+/* Get all patients */
+router.get("/", async (req, res) => {
+  try {
+    const [rows] = await pool.query("SELECT * FROM patients ORDER BY id DESC");
+    res.status(200).json(rows);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: error.message || "Failed to fetch patients" });
+  }
+});
+
+/* get singel patient */
+router.get("/:id", async (req, res) => {
+  try {
+    const patientId = req.params.id;
+    const [result] = await pool.query("SELECT * FROM patients WHERE id = ?", [
+      patientId,
+    ]);
+    res.status(200).json(result[0]);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: error.message || "Failed to load the patient" });
+  }
+});
+/* Delete patient */
+router.delete("/:id", async (req, res) => {
+  try {
+    const doctorId = req.params.id;
+    const [result] = await pool.query("DELETE FROM patients WHERE id = ?", [
+      doctorId,
+    ]);
+
+    res.status(200).json({ message: "Patient deleted successfully" });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: error.message || "Failed to delete patient" });
+  }
+});
+
 router.use((error, req, res, next) => {
   res
     .status(400)
