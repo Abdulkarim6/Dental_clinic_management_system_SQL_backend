@@ -2,7 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const pool = require("./config/db");
 
-const sqlPath = path.join(__dirname, "../sql/003_add_role_doctors.sql");
+const sqlPath = path.join(__dirname, "../sql/004_create_admin.sql");
 const sql = fs.readFileSync(sqlPath, "utf8");
 
 pool

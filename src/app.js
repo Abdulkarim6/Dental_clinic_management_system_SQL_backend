@@ -4,6 +4,7 @@ require("dotenv").config();
 
 const doctorRoutes = require("./routes/doctors.routes");
 const patinetRoutes = require("./routes/patients.routes");
+const adminRoutes = require("./routes/admins.routes");
 const authRoutes = require("./routes/auth.routes");
 
 const app = express();
@@ -17,6 +18,7 @@ app.get("/api/health", (req, res) => {
 
 app.use("/api/doctors", doctorRoutes);
 app.use("/api/patients", patinetRoutes);
+app.use("/api/admins", adminRoutes);
 app.use("/api/auth", authRoutes);
 
 app.use((req, res) => {
