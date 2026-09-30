@@ -138,6 +138,27 @@ router.get("/", async (req, res) => {
   }
 });
 
+/* Update doctor by id */
+router.put("/:id", async (req, res) => {
+    try {
+        const doctorId = req.params.id;
+        const { name, specialization, experience, description, phone, email } = req.body;
+
+        const [result] = await pool.query(
+            `UPDATE doctors SET name = ?, specialization = ?, experience = ?, description = ?, phone = ?, email = ? WHERE id = ?`,
+            [name, specialization, experience, description, phone, email, doctorId]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: "Doctor not found" });
+        }
+
+        res.status(200).json({ message: "Doctor updated successfully" });
+    } catch (error) {
+        res.status(500).json({ message: error.message || "Failed to update doctor" });
+    }
+});
+
 /* Delete doctor by id */
 router.delete("/:id", async (req, res) => {
     try {
