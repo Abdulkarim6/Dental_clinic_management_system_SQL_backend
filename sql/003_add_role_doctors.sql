@@ -1,0 +1,1 @@
+ALTER TABLE doctors ADD COLUMN role VARCHAR(50) DEFAULT 'doctor'

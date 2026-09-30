@@ -15,7 +15,7 @@ const upload = multer({
     }
     cb(null, true);
   },
-});
+}); //cb : callback
 
 function uploadToCloudinary(file) {
   return new Promise((resolve, reject) => {
@@ -49,6 +49,7 @@ async function parseDoctorBody(body) {
   return {
     ...body,
     password: hashedPassword,
+    role: "doctor",
   };
 }
 

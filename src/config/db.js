@@ -7,6 +7,7 @@ const pool = mysql.createPool({
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
+  multipleStatements: true,
   ssl:
     String(process.env.DB_SSL).toLowerCase() === "true"
       ? { rejectUnauthorized: false }

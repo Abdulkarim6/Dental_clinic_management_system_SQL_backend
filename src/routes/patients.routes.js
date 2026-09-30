@@ -5,7 +5,7 @@ const bcrypt = require("bcryptjs");
 const router = express.Router();
 
 async function parsePatientBody(body) {
-  const { password, role } = body;
+  const { password} = body;
 
   const saltRounds = 10;
   const hashedPassword = await bcrypt.hash(password, saltRounds);
@@ -13,7 +13,7 @@ async function parsePatientBody(body) {
   return {
     ...body,
     password: hashedPassword,
-    role: role || "patient",
+    role: "patient",
   };
 }
 
@@ -83,9 +83,9 @@ router.get("/:id", async (req, res) => {
 /* Delete patient */
 router.delete("/:id", async (req, res) => {
   try {
-    const doctorId = req.params.id;
+    const patientId = req.params.id;
     const [result] = await pool.query("DELETE FROM patients WHERE id = ?", [
-      doctorId,
+      patientId,
     ]);
 
     res.status(200).json({ message: "Patient deleted successfully" });
