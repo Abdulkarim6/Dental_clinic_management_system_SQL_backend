@@ -4,7 +4,7 @@ const pool = require("../config/db");
 
 async function migrate() {
   const sql = fs.readFileSync(
-    path.join(__dirname, "../../sql/001_schema.sql"), "utf8"
+    path.join(__dirname, "../../sql/006_create_treatments.sql"), "utf8"
   );
 
   const statements = sql.split(";").map(s => s.trim()).filter(Boolean);

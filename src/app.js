@@ -7,6 +7,8 @@ const patinetRoutes = require("./routes/patients.routes");
 const adminRoutes = require("./routes/admins.routes");
 const authRoutes = require("./routes/auth.routes");
 const appointmentRoutes = require("./routes/appointments.routes");
+const treatmentRoutes = require("./routes/treatments.routes");
+
 
 
 const app = express();
@@ -23,6 +25,7 @@ app.use("/api/patients", patinetRoutes);
 app.use("/api/admins", adminRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/appointments", appointmentRoutes);
+app.use("/api/treatments", treatmentRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ message: "Route not found" });
