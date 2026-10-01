@@ -165,6 +165,25 @@ router.delete("/:id", async (req, res) => {
     }
 });
 
+/* Delete doctor by id */
+router.get("/:id", async (req, res) => {
+    try {
+        const doctorId = req.params.id;
+        console.log(doctorId);
+        
+        const [result] = await pool.query("SELECT * FROM doctors WHERE id = ?", [doctorId]);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: "Doctor not found" });
+        }
+        console.log(result);
+        res.json(result[0])
+       // res.status(200).json({ message: "Doctor deleted successfully" });
+    } catch (error) {
+        res.status(500).json({ message: error.message || "Failed to delete doctor" });
+    }
+});
+
 
 //Global Error handler
 router.use((error, req, res, next) => {
