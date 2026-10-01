@@ -90,6 +90,83 @@ router.post("/", authenticate, requireRole("doctor"), async (req, res) => {
 });
 
 
+// =====================================================
+// Patient: My Treatment History
+// =====================================================
+
+router.get("/my", authenticate, requireRole("patient"), async (req, res) => {
+  try {
+    const patient_id = req.user.id;
+
+    const [rows] = await pool.query(
+      `
+        SELECT
+    t.treatment_id,
+    t.diagnosis,
+    t.treatment_details,
+    t.notes,
+    t.created_at,
+
+    t.appointment_id,
+
+    (SELECT a.appointment_date
+     FROM appointments a
+     WHERE a.appointment_id = t.appointment_id) AS appointment_date,
+
+    (SELECT a.appointment_time
+     FROM appointments a
+     WHERE a.appointment_id = t.appointment_id) AS appointment_time,
+
+    (SELECT a.service_name
+     FROM appointments a
+     WHERE a.appointment_id = t.appointment_id) AS service_name,
+
+    (SELECT a.doctor_id
+     FROM appointments a
+     WHERE a.appointment_id = t.appointment_id) AS doctor_id,
+
+    (SELECT d.name
+     FROM doctors d
+     WHERE d.id = (
+         SELECT a.doctor_id
+         FROM appointments a
+         WHERE a.appointment_id = t.appointment_id
+     )
+    ) AS doctor_name,
+
+    (SELECT d.specialization
+     FROM doctors d
+     WHERE d.id = (
+         SELECT a.doctor_id
+         FROM appointments a
+         WHERE a.appointment_id = t.appointment_id
+     )
+    ) AS specialization
+
+FROM treatments t
+
+WHERE t.appointment_id IN (
+    SELECT a.appointment_id
+    FROM appointments a
+    WHERE a.patient_id = ?
+)
+
+ORDER BY t.created_at DESC;
+        `,
+      [patient_id]
+    );
+
+    res.json(rows);
+  } catch (error) {
+    console.error("Treatment history error:", error);
+
+    res.status(500).json({
+      message: "Failed to load treatment history",
+    });
+  }
+});
+
+
 
 
 module.exports = router;
