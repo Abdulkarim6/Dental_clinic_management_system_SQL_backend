@@ -225,4 +225,46 @@ ORDER BY
   }
 });
 
+
+/* Update appointment payment status */
+router.put("/:id/pay", authenticate, async (req, res) => {
+    try {
+        const appointmentId = req.params.id;
+        const { paymentMethod, transactionId } = req.body;
+
+        const [result] = await pool.query(
+            `UPDATE appointments SET payment_status = 'Paid', payment_method = ? WHERE appointment_id = ?`,
+            [paymentMethod, appointmentId]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: "Appointment not found" });
+        }
+
+        res.status(200).json({ message: "Payment successful" });
+    } catch (error) {
+        res.status(500).json({ message: error.message || "Failed to process payment" });
+    }
+});
+
+/* Cancel appointment */
+router.put("/:id/cancel", authenticate, async (req, res) => {
+    try {
+        const appointmentId = req.params.id;
+
+        const [result] = await pool.query(
+            `UPDATE appointments SET status = 'Cancelled' WHERE appointment_id = ?`,
+            [appointmentId]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: "Appointment not found" });
+        }
+
+        res.status(200).json({ message: "Appointment cancelled successfully" });
+    } catch (error) {
+        res.status(500).json({ message: error.message || "Failed to cancel appointment" });
+    }
+});
+
 module.exports = router;
