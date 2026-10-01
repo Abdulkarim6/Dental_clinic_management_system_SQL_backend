@@ -96,6 +96,9 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
+
+
+
 router.use((error, req, res, next) => {
   res
     .status(400)
