@@ -165,7 +165,7 @@ router.delete("/:id", async (req, res) => {
     }
 });
 
-/* Delete doctor by id */
+/* get doctor by id */
 router.get("/:id", async (req, res) => {
     try {
         const doctorId = req.params.id;
@@ -178,9 +178,8 @@ router.get("/:id", async (req, res) => {
         }
         console.log(result);
         res.json(result[0])
-       // res.status(200).json({ message: "Doctor deleted successfully" });
     } catch (error) {
-        res.status(500).json({ message: error.message || "Failed to delete doctor" });
+        res.status(500).json({ message: error.message || "Failed to get doctor" });
     }
 });
 

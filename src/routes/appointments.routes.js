@@ -267,4 +267,26 @@ router.put("/:id/cancel", authenticate, async (req, res) => {
     }
 });
 
+//loads appointments of specific Doctor
+router.get("/myPatients/:id", authenticate, requireRole("doctor"), async (req, res) => {
+    const doctorId = req.params.id;
+    console.log(273, req.params);
+  try {
+    const [rows] = await pool.query(`
+        SELECT * 
+        FROM appointments a
+        WHERE a.doctor_id = ?
+      `, [doctorId]);
+
+    res.json(rows);
+    console.log(rows);
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      message: "Failed to load appointments",
+    });
+  }
+});
+
 module.exports = router;
