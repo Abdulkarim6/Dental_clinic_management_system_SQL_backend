@@ -166,6 +166,96 @@ ORDER BY t.created_at DESC;
   }
 });
 
+// Doctor → Treatments given by this doctor
+router.get(
+  "/doctor",
+  authenticate,
+  requireRole("doctor"),
+  async (req, res) => {
+    try {
+      const doctorId = req.user.id;
+
+      const [rows] = await pool.query(
+        `
+        SELECT
+          t.treatment_id,
+          t.appointment_id,
+          t.diagnosis,
+          t.treatment_details,
+          t.notes,
+          t.created_at,
+
+          (
+            SELECT p.id
+            FROM patients p
+            WHERE p.id = (
+              SELECT a.patient_id
+              FROM appointments a
+              WHERE a.appointment_id = t.appointment_id
+            )
+          ) AS patientId,
+
+          (
+            SELECT p.name
+            FROM patients p
+            WHERE p.id = (
+              SELECT a.patient_id
+              FROM appointments a
+              WHERE a.appointment_id = t.appointment_id
+            )
+          ) AS patientName,
+
+          (
+            SELECT p.email
+            FROM patients p
+            WHERE p.id = (
+              SELECT a.patient_id
+              FROM appointments a
+              WHERE a.appointment_id = t.appointment_id
+            )
+          ) AS patientEmail,
+
+          (
+            SELECT a.service_name
+            FROM appointments a
+            WHERE a.appointment_id = t.appointment_id
+          ) AS serviceName,
+
+          (
+            SELECT a.appointment_date
+            FROM appointments a
+            WHERE a.appointment_id = t.appointment_id
+          ) AS appointmentDate,
+
+          (
+            SELECT a.appointment_time
+            FROM appointments a
+            WHERE a.appointment_id = t.appointment_id
+          ) AS appointmentTime
+
+        FROM treatments t
+
+        WHERE t.appointment_id IN (
+          SELECT a.appointment_id
+          FROM appointments a
+          WHERE a.doctor_id = ?
+        )
+
+        ORDER BY t.created_at DESC
+        `,
+        [doctorId]
+      );
+
+      res.json(rows);
+    } catch (error) {
+      console.error("Doctor treatment error:", error);
+
+      res.status(500).json({
+        message: "Failed to load treatments",
+      });
+    }
+  }
+);
 
 
 

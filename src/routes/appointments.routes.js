@@ -28,7 +28,6 @@ const TIME_SLOTS = [
 router.get("/available-slots", async (req, res) => {
   try {
       const { doctor_id, date } = req.query;
-      console.log(doctor_id, date);
 
     if (!doctor_id || !date) {
       return res.status(400).json({
@@ -75,7 +74,6 @@ router.post("/", authenticate, requireRole("patient"), async (req, res) => {
       reason,
     } = req.body;
 
-    console.log(req.body);
 
     if (!doctor_id || !service_name || !appointment_date || !appointment_time) {
       return res.status(400).json({
@@ -343,6 +341,35 @@ ORDER BY t.created_at DESC;
 
     res.status(500).json({
       message: "Failed to load treatment history",
+    });
+  }
+});
+
+
+//loads appointments of specific Doctor
+router.get("/myPatients/:id", authenticate, requireRole("doctor"), async (req, res) => {
+    const doctorId = req.params.id;
+  try {
+    const [rows] = await pool.query(`
+        SELECT a.*,
+        (SELECT p.name
+            FROM patients p
+            WHERE p.id = a.patient_id) AS patientName,
+
+        (SELECT p.email
+            FROM patients p
+            WHERE p.id = a.patient_id) AS patientEmail
+        FROM appointments a
+        WHERE a.doctor_id = ?
+
+      `, [doctorId]);
+
+    res.json(rows);
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      message: "Failed to load appointments",
     });
   }
 });
