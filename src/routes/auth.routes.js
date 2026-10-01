@@ -41,6 +41,7 @@ router.post("/login", async (req, res) => {
     // JWT তৈরি
     const token = jwt.sign(
       {
+        id: user.id,
         email: user.email,
         role: user.role,
       },
@@ -49,7 +50,7 @@ router.post("/login", async (req, res) => {
         expiresIn: "7d",
       }
     );
-
+    
     res.status(200).send({
       message: "Login successful",
       id: user.id,
